@@ -214,6 +214,10 @@ module ActsAsBookable::Bookable
         if (self.booking_opts[:capacity_type] == :closed && !overlapped.empty?)
           raise ActsAsBookable::AvailabilityError.new ActsAsBookable::T.er('.availability.already_booked', model: self.class.to_s)
         end
+        # if capacity_type is :open, raise error if sum amount of overlapped bookings >= capacity
+        if (self.booking_opts[:capacity_type] == :open && overlapped.pluck(:amount).sum >= self.capacity)
+          raise ActsAsBookable::AvailabilityError.new ActsAsBookable::T.er('.availability.already_booked', model: self.class.to_s)
+        end
         # if capacity_type is :open, check if amount <= maximum amount of overlapped booking
         if (self.booking_opts[:capacity_type] == :open && !overlapped.empty?)
           # if time_type is :range, split in sub-intervals and check the maximum sum of amounts against capacity for each sub-interval
